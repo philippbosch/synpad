@@ -1,0 +1,23 @@
+{
+  "name": "synpad",
+  "version": "0.0.0",
+  "authors": [
+    "Philipp Bosch <hello@pb.io>"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.0.3",
+    "angular": "1.2.6",
+    "angular-ui-router": "~0.2.7",
+    "angular-resource": "~1.2.5",
+    "angular-storage": "~0.3.0"
+  }
+}
