@@ -1,7 +1,7 @@
 "use strict"
 
 angular
-    .module('synpad', ['ngResource', 'ui.router', 'angular-storage', 'firebase', 'synpad.controllers', 'synpad.services'])
+    .module('synpad', ['ngResource', 'ui.router', 'ui.codemirror', 'angular-storage', 'firebase', 'synpad.controllers', 'synpad.services'])
     .config(['$stateProvider', '$urlRouterProvider', '$locationProvider', ($stateProvider, $urlRouterProvider, $locationProvider) ->
         $urlRouterProvider.otherwise('/')
         $locationProvider.html5Mode(true)

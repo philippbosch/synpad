@@ -14,6 +14,9 @@ body, html {
 .editor {
   left: 0;
 }
+.editor .firepad, .editor .firepad > div {
+  height: 100%;
+}
 .editor textarea {
   font-family: Consolas, Monaco, monospace;
   border: 0;
@@ -80,6 +83,7 @@ button.toggle-preview:hover {
 }
 button.toggle-preview:focus {
   outline: 0;
+  background: none;
 }
 
 .output {

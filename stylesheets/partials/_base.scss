@@ -15,6 +15,12 @@ body, html {
     @extend %column;
     left: 0;
 
+    .firepad {
+        &, & > div {
+            height: 100%;
+        }
+    }
+
     textarea {
         font-family: Consolas, Monaco, monospace;
         border: 0;
@@ -86,6 +92,7 @@ button.toggle-preview {
 
     &:focus {
         outline: 0;
+        background: none;
     }
 }
 

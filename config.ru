@@ -46,6 +46,8 @@ use Rack::Rewrite do
   rewrite '/hello/edit', '/'
   rewrite '/foo', '/'
   rewrite '/foo/edit', '/'
+  rewrite '/yo', '/'
+  rewrite '/yo/edit', '/'
 end
 
 # Rack Application

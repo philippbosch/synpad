@@ -6,17 +6,22 @@
         <title ng-bind="pageTitle"></title>
         <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.css">
         <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap-theme.css">
+        <link rel="stylesheet" href="/components/codemirror/lib/codemirror.css">
         <link rel="stylesheet" href="/stylesheets/screen.css">
     </head>
     <body>
         <div ui-view="main"></div>
 
         <script src="/components/jquery/jquery.js"></script>
+        <script src="/components/codemirror/lib/codemirror.js"></script>
+        <script src="/components/codemirror/mode/markdown/markdown.js"></script>
         <script src="/components/angular/angular.js"></script>
         <script src="/components/angular-resource/angular-resource.js"></script>
         <script src="/components/angular-storage/dist/angular-storage.js"></script>
         <script src="/components/angular-ui-router/release/angular-ui-router.js"></script>
+        <script src="/components/angular-ui-codemirror/ui-codemirror.js"></script>
         <script src="/components/firebase/lib/firebase.js"></script>
+        <script src="/components/firepad/dist/firepad.js"></script>
         <script src="/components/angularfire/angularfire.js"></script>
         <script src="/components/bootstrap/dist/js/bootstrap.js"></script>
         <script src="/components/showdown/src/showdown.js"></script>

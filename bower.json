@@ -21,6 +21,8 @@
     "angular-storage": "~0.3.0",
     "angularfire": "~0.5.0",
     "firebase": "~1.0.1",
-    "showdown": "~0.3.1"
+    "showdown": "~0.3.1",
+    "firepad": "~0.1.2",
+    "angular-ui-codemirror": "~0.0.7"
   }
 }
