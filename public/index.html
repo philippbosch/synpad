@@ -4,14 +4,20 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title ng-bind="pageTitle"></title>
+        <!--(if target dev)><!-->
         <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap.css">
         <link rel="stylesheet" href="/components/bootstrap/dist/css/bootstrap-theme.css">
         <link rel="stylesheet" href="/components/codemirror/lib/codemirror.css">
         <link rel="stylesheet" href="/stylesheets/screen.css">
+        <!--<!(endif)-->
+        <!--(if target dist)>
+        <link rel="stylesheet" href="/stylesheets/screen.min.css">
+        <!(endif)-->
     </head>
     <body>
         <div ui-view="main"></div>
 
+        <!--(if target dev)><!-->
         <script src="/components/jquery/jquery.js"></script>
         <script src="/components/codemirror/lib/codemirror.js"></script>
         <script src="/components/codemirror/mode/markdown/markdown.js"></script>
@@ -28,5 +34,9 @@
         <script src="/javascripts/controllers.js"></script>
         <script src="/javascripts/services.js"></script>
         <script src="/javascripts/app.js"></script>
+        <!--<!(endif)-->
+        <!--(if target dist)>
+        <script src="/javascripts/app.min.js"></script>
+        <!(endif)-->
     </body>
 </html>

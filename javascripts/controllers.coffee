@@ -6,8 +6,13 @@ angular
     .controller('MainController', ['$scope', ($scope) ->
     ])
 
-    .controller('HomeController', ['$scope', '$firebase', 'firebaseref', ($scope, $firebase, firebaseref) ->
-        $scope.documents = $firebase(firebaseref)
+    .controller('HomeController', ['$scope', '$state', '$firebase', 'firebaseref', ($scope, $state, $firebase, firebaseref) ->
+        ref = firebaseref.child('documents').push()
+        $state.go('editor', id: ref.name())
+    ])
+
+    .controller('ListController', ['$scope', '$firebase', 'firebaseref', ($scope, $firebase, firebaseref) ->
+        $scope.documents = $firebase(firebaseref.child('documents'))
     ])
 
     .controller('DocumentController', ['$scope', '$sce', '$stateParams', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $stateParams, $firebase, firebaseref, showdown) ->

@@ -13,15 +13,22 @@ angular
                     templateUrl: '/partials/home.html'
                     controller: 'HomeController'
 
+        $stateProvider.state 'list',
+            url: '/list'
+            views:
+                main:
+                    templateUrl: '/partials/list.html'
+                    controller: 'ListController'
+
         $stateProvider.state 'document',
-            url: '/:id'
+            url: '/{id:.*[^_]}'
             views:
                 main:
                     templateUrl: '/partials/document.html'
                     controller: 'DocumentController'
 
         $stateProvider.state 'editor',
-            url: '/:id/edit'
+            url: '/{id:.*[^_]}_'
             views:
                 main:
                     templateUrl: '/partials/editor.html'
