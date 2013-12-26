@@ -43,7 +43,9 @@ use Rack::Coffee, {
 
 use Rack::Rewrite do
   rewrite '/hello', '/'
+  rewrite '/hello/edit', '/'
   rewrite '/foo', '/'
+  rewrite '/foo/edit', '/'
 end
 
 # Rack Application

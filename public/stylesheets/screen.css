@@ -1,9 +1,12 @@
+body, html {
+  height: 100%;
+  overflow: hidden;
+}
+
 .editor, .preview {
   position: absolute;
   top: 0;
-  width: 50%;
   height: 100%;
-  padding: 1em;
   overflow: hidden;
   overflow-y: auto;
 }
@@ -18,6 +21,10 @@
   resize: none;
   width: 100%;
   height: 100%;
+  max-width: 50em;
+  margin: 0 auto;
+  font-size: 120%;
+  padding: 1em 1.5em;
 }
 .editor textarea:focus {
   box-shadow: none;
@@ -25,7 +32,58 @@
 
 .preview {
   right: 0;
+  padding: 2em;
 }
 .preview > :first-child {
   margin-top: 0;
+}
+
+.wrapper .editor, .wrapper .preview {
+  -moz-transition: 250ms ease all;
+  -o-transition: 250ms ease all;
+  -webkit-transition: 250ms ease all;
+  transition: 250ms ease all;
+  -moz-transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.wrapper.show-preview .editor, .wrapper.show-preview .preview {
+  width: 50%;
+}
+.wrapper.show-preview .preview {
+  opacity: 1;
+  width: 50%;
+}
+.wrapper .editor {
+  width: 100%;
+}
+.wrapper .preview {
+  opacity: 0;
+  width: 0%;
+}
+
+button.toggle-preview {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  z-index: 2;
+  background: none;
+  opacity: 0.2;
+  -moz-transition: 100ms ease all;
+  -o-transition: 100ms ease all;
+  -webkit-transition: 100ms ease all;
+  transition: 100ms ease all;
+}
+button.toggle-preview:hover {
+  opacity: 1;
+  background: none;
+}
+button.toggle-preview:focus {
+  outline: 0;
+}
+
+.output {
+  margin: 1em auto;
+  padding: 0 1em;
+  max-width: 50em;
 }
