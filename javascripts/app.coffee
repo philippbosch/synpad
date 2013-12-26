@@ -2,15 +2,15 @@
 
 angular
     .module('synpad', ['ngResource', 'ui.router', 'ui.codemirror', 'angular-storage', 'firebase', 'synpad.controllers', 'synpad.services'])
-    .config(['$stateProvider', '$urlRouterProvider', '$locationProvider', ($stateProvider, $urlRouterProvider, $locationProvider) ->
+    .config(['$stateProvider', '$urlRouterProvider', '$locationProvider', '$sceProvider', ($stateProvider, $urlRouterProvider, $locationProvider, $sceProvider) ->
         $urlRouterProvider.otherwise('/')
         $locationProvider.html5Mode(true)
+        $sceProvider.enabled(false)
 
         $stateProvider.state 'home',
             url: '/'
             views:
                 main:
-                    templateUrl: '/partials/home.html'
                     controller: 'HomeController'
 
         $stateProvider.state 'list',

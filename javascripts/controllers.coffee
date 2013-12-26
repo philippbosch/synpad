@@ -15,15 +15,12 @@ angular
         $scope.documents = $firebase(firebaseref.child('documents'))
     ])
 
-    .controller('DocumentController', ['$scope', '$sce', '$stateParams', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $stateParams, $firebase, firebaseref, showdown) ->
-        docRef = firebaseref.child($stateParams.id)
-        $scope.document = $firebase(docRef)
-        mdRef = docRef.child('md')
-        $scope._md = $firebase(mdRef)
-        $scope._md.$bind($scope, 'md')
+    .controller('DocumentController', ['$scope', '$sce', '$state', '$stateParams', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $state, $stateParams, $firebase, firebaseref, showdown) ->
+        docRef = firebaseref.child('rendered').child($stateParams.id)
+        $scope.renderedDocument = $firebase(docRef)
 
-        $scope._md.$on 'change', ->
-            $scope.documentHTML = $sce.trustAsHtml(showdown.makeHtml($scope._md.$value))
+        # docRef.once 'value', (data) ->
+        #     $state.go('editor', id: $stateParams.id) if not data.val()
     ])
 
     .controller('EditorController', ['$scope', '$sce', '$stateParams', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $stateParams, $firebase, firebaseref, showdown) ->
@@ -49,4 +46,7 @@ angular
 
             updatePreview = ->
                 $scope.documentHTML = $sce.trustAsHtml(showdown.makeHtml(editor.getDoc().getValue()))
+
+        $scope.publish = ->
+            renderedDocRef = firebaseref.child('rendered').child($stateParams.id).set(html: "#{$scope.documentHTML}")
     ])

@@ -65,23 +65,24 @@ body, html {
   width: 0%;
 }
 
-button.toggle-preview {
+.buttons {
   position: absolute;
   top: 1em;
   right: 1em;
   z-index: 2;
-  background: none;
   opacity: 0.2;
   -moz-transition: 100ms ease all;
   -o-transition: 100ms ease all;
   -webkit-transition: 100ms ease all;
   transition: 100ms ease all;
 }
-button.toggle-preview:hover {
+.buttons:hover {
   opacity: 1;
+}
+.buttons button, .buttons button:hover {
   background: none;
 }
-button.toggle-preview:focus {
+.buttons button:focus {
   outline: 0;
   background: none;
 }

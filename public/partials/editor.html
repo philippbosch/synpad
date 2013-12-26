@@ -1,5 +1,8 @@
 <div class="wrapper" ng-class="{'show-preview': showPreview}">
     <div class="editor"><textarea rows="20" ui-codemirror="{lineWrapping: true, mode: 'markdown', onLoad: codemirrorLoaded}"></textarea></div>
     <div class="preview" ng-bind-html="documentHTML"></div>
-    <button class="btn btn-default btn-sm toggle-preview" ng-click="togglePreview()"><span ng-show="showPreview">Hide</span><span ng-hide="showPreview">Show</span> Preview</button>
+    <div class="buttons">
+        <button class="btn btn-default btn-sm toggle-preview" ng-click="togglePreview()"><span ng-show="showPreview">Hide</span><span ng-hide="showPreview">Show</span> Preview</button>
+        <button class="btn btn-default btn-sm publish" ng-click="publish()">Publish</button>
+    </div>
 </div>

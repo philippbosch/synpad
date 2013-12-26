@@ -76,23 +76,27 @@ body, html {
     }
 }
 
-button.toggle-preview {
+.buttons {
     position: absolute;
     top: 1em;
     right: 1em;
     z-index: 2;
-    background: none;
     opacity: 0.2;
     @include transition(100ms ease all);
 
     &:hover {
         opacity: 1;
-        background: none;
     }
 
-    &:focus {
-        outline: 0;
-        background: none;
+    button {
+        &, &:hover {
+            background: none;
+        }
+
+        &:focus {
+            outline: 0;
+            background: none;
+        }
     }
 }
 
