@@ -42,8 +42,8 @@ use Rack::Coffee, {
 }
 
 use Rack::Rewrite do
-  rewrite '/order', '/'
-  rewrite '/order?authenticated=1', '/'
+  rewrite '/hello', '/'
+  rewrite '/foo', '/'
 end
 
 # Rack Application

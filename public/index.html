@@ -9,32 +9,17 @@
         <link rel="stylesheet" href="/stylesheets/screen.css">
     </head>
     <body>
-        <nav class="navbar navbar-default navbar-static-top">
-            <div class="container">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="/">SynPad</a>
-                </div>
-                <div class="collapse navbar-collapse">
-                    <ul class="nav navbar-nav">
-                        <li class=""><a ui-sref="home">Home</a></li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-
-        <div class="container" ui-view="main"></div>
+        <div ui-view="main"></div>
 
         <script src="/components/jquery/jquery.js"></script>
         <script src="/components/angular/angular.js"></script>
         <script src="/components/angular-resource/angular-resource.js"></script>
         <script src="/components/angular-storage/dist/angular-storage.js"></script>
         <script src="/components/angular-ui-router/release/angular-ui-router.js"></script>
+        <script src="/components/firebase/lib/firebase.js"></script>
+        <script src="/components/angularfire/angularfire.js"></script>
         <script src="/components/bootstrap/dist/js/bootstrap.js"></script>
+        <script src="/components/showdown/src/showdown.js"></script>
         <script src="/javascripts/controllers.js"></script>
         <script src="/javascripts/services.js"></script>
         <script src="/javascripts/app.js"></script>

@@ -1,0 +1,36 @@
+%column {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    padding: 1em;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+.editor {
+    @extend %column;
+    left: 0;
+
+    textarea {
+        font-family: Consolas, Monaco, monospace;
+        border: 0;
+        box-shadow: none;
+        resize: none;
+        width: 100%;
+        height: 100%;
+
+        &:focus {
+            box-shadow: none;
+        }
+    }
+}
+
+.preview {
+    @extend %column;
+    right: 0;
+
+    & > :first-child {
+        margin-top: 0;
+    }
+}
