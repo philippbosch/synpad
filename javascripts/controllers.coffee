@@ -19,8 +19,8 @@ angular
         docRef = firebaseref.child('rendered').child($stateParams.id)
         $scope.renderedDocument = $firebase(docRef)
 
-        # docRef.once 'value', (data) ->
-        #     $state.go('editor', id: $stateParams.id) if not data.val()
+        docRef.once 'value', (data) ->
+            $state.go('editor', id: $stateParams.id) if not data.val()
     ])
 
     .controller('EditorController', ['$scope', '$sce', '$stateParams', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $stateParams, $firebase, firebaseref, showdown) ->
