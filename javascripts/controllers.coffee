@@ -15,6 +15,8 @@ angular
 
     .controller('ListController', ['$scope', '$firebase', 'firebaseref', ($scope, $firebase, firebaseref) ->
         $scope.documents = $firebase(firebaseref.child('documents'))
+        $scope.documents.$on 'loaded', ->
+            $scope.documentsLoaded = true
     ])
 
     .controller('DocumentController', ['$scope', '$sce', '$state', '$stateParams', '$document', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $state, $stateParams, $document, $firebase, firebaseref, showdown) ->
