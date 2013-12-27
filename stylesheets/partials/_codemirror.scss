@@ -1,0 +1,77 @@
+$link-color: #428bca;
+
+.cm-s-synpad {
+    font-family: Consolas, Menlo, Meslo, Monaco, monospace;
+    font-size: 18px;
+    line-height: 1.4;
+
+    &.CodeMirror {
+        color: #555;
+    }
+
+    .CodeMirror-scroll {
+        padding: 2em;
+        @include box-sizing(border-box);
+    }
+
+    .CodeMirror-selected {
+        background: #ddd !important;
+    }
+
+    .CodeMirror-cursor {
+        border-left: 2px solid rgba($link-color, 0.7) !important;
+    }
+
+    span.cm-comment {
+        color: #aaa;
+    }
+
+    span.cm-atom {
+        color: red;
+    }
+
+    span.cm-number, span.cm-attribute {
+        color: green;
+    }
+
+    span.cm-keyword {
+        color: blue;
+    }
+
+    span.cm-string {
+        color: rgba($link-color, 0.6);
+    }
+
+    span.cm-meta {
+        color: orange;
+    }
+
+    span.cm-variable-2, span.cm-tag, span.cm-variable-3, span.cm-def {
+        color: black;
+    }
+
+    span.cm-bracket {
+        color: violet;
+    }
+
+    span.cm-link {
+        color: $link-color;
+    }
+
+    span.CodeMirror-matchingbracket {
+        color: silver;
+    }
+
+    span.cm-builtin, span.cm-special {
+        color: wheat;
+    }
+
+    span.cm-error {
+        color: tomato;
+    }
+}
+
+
+// .cm-s-synpad .CodeMirror-gutters { background: #1F4661; border-right: 7px solid #3E7087; }
+// .cm-s-synpad .CodeMirror-linenumber { color: white; }
+

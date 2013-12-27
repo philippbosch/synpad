@@ -23,12 +23,16 @@ angular
             $state.go('editor', id: $stateParams.id) if not data.val()
     ])
 
-    .controller('EditorController', ['$scope', '$sce', '$stateParams', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $stateParams, $firebase, firebaseref, showdown) ->
+    .controller('EditorController', ['$scope', '$rootScope', '$sce', '$stateParams', 'ngStorage', '$firebase', 'firebaseref', 'showdown', ($scope, $rootScope, $sce, $stateParams, ngStorage, $firebase, firebaseref, showdown) ->
+        $rootScope.noScroll = true
+
         docRef = firebaseref.child('documents').child($stateParams.id)
 
-        $scope.showPreview = true
+        $scope.showPreview = ngStorage.get('showPreview') == 'true'
+
         $scope.togglePreview = ->
             $scope.showPreview = !$scope.showPreview
+            ngStorage.set('showPreview', $scope.showPreview)
 
         $scope.codemirrorLoaded = (editor) ->
             firepad = Firepad.fromCodeMirror(docRef, editor)
@@ -43,6 +47,8 @@ angular
                 setTimeout ->
                     $scope.$apply updatePreview
                 , 0
+
+                editor.getDoc().setCursor(0,0)
 
             updatePreview = ->
                 $scope.documentHTML = $sce.trustAsHtml(showdown.makeHtml(editor.getDoc().getValue()))

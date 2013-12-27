@@ -1,6 +1,8 @@
-body, html {
-    height: 100%;
-    overflow: hidden;
+html.no-scroll {
+    &, body {
+        height: 100%;
+        overflow: hidden;
+    }
 }
 
 %column {
@@ -101,7 +103,7 @@ body, html {
 }
 
 .output {
-    margin: 1em auto;
+    margin: 4em auto;
     padding: 0 1em;
-    max-width: 50em;
+    max-width: 60em;
 }

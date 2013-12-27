@@ -1,4 +1,4 @@
-body, html {
+html.no-scroll, html.no-scroll body {
   height: 100%;
   overflow: hidden;
 }
@@ -88,7 +88,64 @@ body, html {
 }
 
 .output {
-  margin: 1em auto;
+  margin: 4em auto;
   padding: 0 1em;
-  max-width: 50em;
+  max-width: 60em;
+}
+
+.cm-s-synpad {
+  font-family: Consolas, Menlo, Meslo, Monaco, monospace;
+  font-size: 18px;
+  line-height: 1.4;
+}
+.cm-s-synpad.CodeMirror {
+  color: #555;
+}
+.cm-s-synpad .CodeMirror-scroll {
+  padding: 2em;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.cm-s-synpad .CodeMirror-selected {
+  background: #ddd !important;
+}
+.cm-s-synpad .CodeMirror-cursor {
+  border-left: 2px solid rgba(66, 139, 202, 0.7) !important;
+}
+.cm-s-synpad span.cm-comment {
+  color: #aaa;
+}
+.cm-s-synpad span.cm-atom {
+  color: red;
+}
+.cm-s-synpad span.cm-number, .cm-s-synpad span.cm-attribute {
+  color: green;
+}
+.cm-s-synpad span.cm-keyword {
+  color: blue;
+}
+.cm-s-synpad span.cm-string {
+  color: rgba(66, 139, 202, 0.6);
+}
+.cm-s-synpad span.cm-meta {
+  color: orange;
+}
+.cm-s-synpad span.cm-variable-2, .cm-s-synpad span.cm-tag, .cm-s-synpad span.cm-variable-3, .cm-s-synpad span.cm-def {
+  color: black;
+}
+.cm-s-synpad span.cm-bracket {
+  color: violet;
+}
+.cm-s-synpad span.cm-link {
+  color: #428bca;
+}
+.cm-s-synpad span.CodeMirror-matchingbracket {
+  color: silver;
+}
+.cm-s-synpad span.cm-builtin, .cm-s-synpad span.cm-special {
+  color: wheat;
+}
+.cm-s-synpad span.cm-error {
+  color: tomato;
 }
