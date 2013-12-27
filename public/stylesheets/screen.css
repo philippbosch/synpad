@@ -113,6 +113,9 @@ html.no-scroll, html.no-scroll body {
 .cm-s-synpad .CodeMirror-cursor {
   border-left: 2px solid rgba(66, 139, 202, 0.7) !important;
 }
+.cm-s-synpad span.cm-header {
+  color: #222;
+}
 .cm-s-synpad span.cm-comment {
   color: #aaa;
 }
