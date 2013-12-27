@@ -88,9 +88,14 @@ html.no-scroll, html.no-scroll body {
 }
 
 .output {
-  margin: 4em auto;
+  margin: 1em auto;
   padding: 0 1em;
   max-width: 60em;
+}
+@media screen and (min-width: 960px) {
+  .output {
+    margin: 4em auto;
+  }
 }
 
 .cm-s-synpad {
