@@ -16,9 +16,11 @@ module.exports = (grunt) ->
             'public/components/jquery/jquery.js',
             'public/components/codemirror/lib/codemirror.js',
             'public/components/codemirror/mode/markdown/markdown.js',
+            'public/components/moment/moment.js',
             'public/components/angular/angular.js',
             'public/components/angular-resource/angular-resource.js',
             'public/components/angular-storage/dist/angular-storage.js',
+            'public/components/angular-moment/angular-moment.js',
             'public/components/angular-ui-router/release/angular-ui-router.js',
             'public/components/angular-ui-codemirror/ui-codemirror.js',
             'public/components/firebase/lib/firebase.js',
@@ -84,4 +86,4 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-compass'
 
   grunt.registerTask 'default', ['clean', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
-  grunt.registerTask 'deploy', ['default', 'rsync']
+  grunt.registerTask 'deploy', ['default', 'rsync', 'clean']

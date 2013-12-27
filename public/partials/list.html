@@ -4,6 +4,9 @@
     </div>
 
     <div class="list-group">
-        <a class="list-group-item" ng-repeat="(key, doc) in documents" ui-sref="document({id: key})">{{ key }}</a>
+        <a class="list-group-item" ng-repeat="doc in documents|orderByPriority|orderBy:['rendered != null','$priority']:true" ui-sref="document({id: doc.$id})">
+            <span class="badge silent" am-time-ago="doc.rendered.timestamp"></span>
+            {{ doc.$id }}
+        </a>
     </div>
 </div>

@@ -43,12 +43,11 @@ use Rack::Coffee, {
 
 use Rack::Rewrite do
   rewrite '/hello', '/'
-  rewrite '/hello/edit', '/'
+  rewrite '/hello_', '/'
   rewrite '/foo', '/'
-  rewrite '/foo/edit', '/'
+  rewrite '/foo_', '/'
   rewrite '/yo', '/'
   rewrite '/yo_', '/'
-  rewrite '/yo/edit', '/'
   rewrite '/list', '/'
 end
 

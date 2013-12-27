@@ -23,6 +23,7 @@
     "firebase": "~1.0.1",
     "showdown": "~0.3.1",
     "firepad": "~0.1.2",
-    "angular-ui-codemirror": "~0.0.7"
+    "angular-ui-codemirror": "~0.0.7",
+    "angular-moment": "~0.6.0"
   }
 }

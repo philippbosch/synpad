@@ -106,6 +106,13 @@ html.no-scroll, html.no-scroll body {
   }
 }
 
+.badge.silent {
+  background: transparent;
+  color: inherit;
+  font-weight: normal;
+  opacity: 0.3;
+}
+
 .cm-s-synpad {
   font-family: Consolas, Menlo, Meslo, Monaco, monospace;
   font-size: 18px;

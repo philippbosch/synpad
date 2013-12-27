@@ -20,7 +20,7 @@ angular
         $scope.renderedDocument = $firebase(docRef.child('rendered'))
 
         docRef.once 'value', (data) ->
-            $state.go('editor', id: $stateParams.id) if not data.val()
+            $state.go('editor', id: $stateParams.id) if not data.val().rendered
     ])
 
     .controller('EditorController', ['$scope', '$rootScope', '$sce', '$state', '$stateParams', '$location', 'ngStorage', '$firebase', 'firebaseref', 'showdown', ($scope, $rootScope, $sce, $state, $stateParams, $location, ngStorage, $firebase, firebaseref, showdown) ->
@@ -54,8 +54,15 @@ angular
                 $scope.documentHTML = $sce.trustAsHtml(showdown.makeHtml(editor.getDoc().getValue()))
 
         $scope.publish = ->
-            renderedDocRef = firebaseref.child('documents').child($stateParams.id).child('rendered').set html: "#{$scope.documentHTML}", ->
+            data =
+                html: "#{$scope.documentHTML}"
+                timestamp: Firebase.ServerValue.TIMESTAMP
+
+            docRef = firebaseref.child('documents').child($stateParams.id)
+            docRef.child('rendered').set(data, ->
                 $('#published').modal(backdrop: false, keyboard: true)
+                docRef.setPriority(Math.round((new Date()).getTime()/1000))
+            )
 
         $scope.id = $stateParams.id
         $scope.outputURL = "#{$location.protocol()}://#{$location.host()}#{if $location.port()!=80 then ':'+$location.port() else ''}#{$state.href('document', id: $stateParams.id)}"

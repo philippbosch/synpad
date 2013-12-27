@@ -114,3 +114,10 @@ html.no-scroll {
         margin: 4em auto;
     }
 }
+
+.badge.silent {
+    background: transparent;
+    color: inherit;
+    font-weight: normal;
+    opacity: 0.3;
+}
