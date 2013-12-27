@@ -2,7 +2,7 @@
     <div class="editor"><textarea rows="20" autofocus ui-codemirror="{theme: 'synpad', autofocus: true, lineWrapping: true, mode: 'markdown', onLoad: codemirrorLoaded}"></textarea></div>
     <div class="preview" ng-bind-html="documentHTML"></div>
     <div class="buttons">
-        <button class="btn btn-default btn-sm toggle-preview" ng-click="togglePreview()"><span ng-show="showPreview">Hide</span><span ng-hide="showPreview">Show</span> Preview</button>
-        <button class="btn btn-default btn-sm publish" ng-click="publish()">Publish</button>
+        <button class="btn btn-default btn-xs toggle-preview" ng-click="togglePreview()"><span ng-show="showPreview">Hide</span><span ng-hide="showPreview">Show</span> Preview</button>
+        <button class="btn btn-default btn-xs publish" ng-click="publish()">Publish</button>
     </div>
 </div>

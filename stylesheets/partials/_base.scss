@@ -43,7 +43,7 @@ html.no-scroll {
 
 .preview {
     @extend %column;
-    right: 0;
+    left: 50%;
     padding: 2em;
 
     & > :first-child {
@@ -65,6 +65,7 @@ html.no-scroll {
         .preview {
             opacity: 1;
             width: 50%;
+            @include translate3d(0,0,0);
         }
     }
 
@@ -74,7 +75,7 @@ html.no-scroll {
 
     .preview {
         opacity: 0;
-        width: 0%;
+        @include translate3d(100%,0,0);
     }
 }
 
@@ -83,7 +84,7 @@ html.no-scroll {
     top: 1em;
     right: 1em;
     z-index: 2;
-    opacity: 0.2;
+    opacity: 0.4;
     @include transition(100ms ease all);
 
     &:hover {
@@ -91,6 +92,8 @@ html.no-scroll {
     }
 
     button {
+        color: #999;
+
         &, &:hover {
             background: none;
         }

@@ -34,7 +34,7 @@ html.no-scroll, html.no-scroll body {
 }
 
 .preview {
-  right: 0;
+  left: 50%;
   padding: 2em;
 }
 .preview > :first-child {
@@ -56,13 +56,18 @@ html.no-scroll, html.no-scroll body {
 .wrapper.show-preview .preview {
   opacity: 1;
   width: 50%;
+  -moz-transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
 }
 .wrapper .editor {
   width: 100%;
 }
 .wrapper .preview {
   opacity: 0;
-  width: 0%;
+  -moz-transform: translate3d(100%, 0, 0);
+  -webkit-transform: translate3d(100%, 0, 0);
+  transform: translate3d(100%, 0, 0);
 }
 
 .buttons {
@@ -70,7 +75,7 @@ html.no-scroll, html.no-scroll body {
   top: 1em;
   right: 1em;
   z-index: 2;
-  opacity: 0.2;
+  opacity: 0.4;
   -moz-transition: 100ms ease all;
   -o-transition: 100ms ease all;
   -webkit-transition: 100ms ease all;
@@ -78,6 +83,9 @@ html.no-scroll, html.no-scroll body {
 }
 .buttons:hover {
   opacity: 1;
+}
+.buttons button {
+  color: #999;
 }
 .buttons button, .buttons button:hover {
   background: none;
@@ -124,36 +132,9 @@ html.no-scroll, html.no-scroll body {
 .cm-s-synpad span.cm-comment {
   color: #aaa;
 }
-.cm-s-synpad span.cm-atom {
-  color: red;
-}
-.cm-s-synpad span.cm-number, .cm-s-synpad span.cm-attribute {
-  color: green;
-}
-.cm-s-synpad span.cm-keyword {
-  color: blue;
-}
 .cm-s-synpad span.cm-string {
-  color: rgba(66, 139, 202, 0.6);
-}
-.cm-s-synpad span.cm-meta {
-  color: orange;
-}
-.cm-s-synpad span.cm-variable-2, .cm-s-synpad span.cm-tag, .cm-s-synpad span.cm-variable-3, .cm-s-synpad span.cm-def {
-  color: black;
-}
-.cm-s-synpad span.cm-bracket {
-  color: violet;
+  color: rgba(66, 139, 202, 0.5);
 }
 .cm-s-synpad span.cm-link {
   color: #428bca;
-}
-.cm-s-synpad span.CodeMirror-matchingbracket {
-  color: silver;
-}
-.cm-s-synpad span.cm-builtin, .cm-s-synpad span.cm-special {
-  color: wheat;
-}
-.cm-s-synpad span.cm-error {
-  color: tomato;
 }
