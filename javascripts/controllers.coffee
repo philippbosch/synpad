@@ -8,7 +8,7 @@ angular
 
     .controller('HomeController', ['$scope', '$state', '$firebase', 'firebaseref', ($scope, $state, $firebase, firebaseref) ->
         ref = firebaseref.child('documents').push()
-        $state.go('editor', id: ref.name())
+        $state.go('editor', id: Math.random().toString(36).substr(2,8))
     ])
 
     .controller('ListController', ['$scope', '$firebase', 'firebaseref', ($scope, $firebase, firebaseref) ->
@@ -20,7 +20,7 @@ angular
         $scope.renderedDocument = $firebase(docRef.child('rendered'))
 
         docRef.once 'value', (data) ->
-            $state.go('editor', id: $stateParams.id) if not data.val().rendered
+            $state.go('editor', id: $stateParams.id) if not data.val()?.rendered
     ])
 
     .controller('EditorController', ['$scope', '$rootScope', '$sce', '$state', '$stateParams', '$location', 'ngStorage', '$firebase', 'firebaseref', 'showdown', ($scope, $rootScope, $sce, $state, $stateParams, $location, ngStorage, $firebase, firebaseref, showdown) ->
