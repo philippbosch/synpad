@@ -3,7 +3,9 @@
 angular
     .module('synpad.controllers', [])
 
-    .controller('MainController', ['$scope', ($scope) ->
+    .controller('MainController', ['$scope', '$state', ($scope, $state) ->
+        $scope.$on '$stateChangeStart', (event, toState, toParams, fromState, fromParams) ->
+            $scope.noScroll = toState.name == 'editor'
     ])
 
     .controller('HomeController', ['$scope', '$state', '$firebase', 'firebaseref', ($scope, $state, $firebase, firebaseref) ->
@@ -27,9 +29,7 @@ angular
                 $state.go('editor', id: $stateParams.id)
     ])
 
-    .controller('EditorController', ['$scope', '$rootScope', '$sce', '$state', '$stateParams', '$location', 'ngStorage', '$firebase', 'firebaseref', 'showdown', ($scope, $rootScope, $sce, $state, $stateParams, $location, ngStorage, $firebase, firebaseref, showdown) ->
-        $rootScope.noScroll = true
-
+    .controller('EditorController', ['$scope', '$sce', '$state', '$stateParams', '$location', 'ngStorage', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $state, $stateParams, $location, ngStorage, $firebase, firebaseref, showdown) ->
         docRef = firebaseref.child('documents').child($stateParams.id)
 
         $scope.showPreview = ngStorage.get('showPreview') == 'true'
