@@ -120,6 +120,10 @@ html.no-scroll, html.no-scroll body {
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
+.cm-s-synpad .CodeMirror-sizer {
+  max-width: 60em;
+  margin: 0 auto !important;
+}
 .cm-s-synpad .CodeMirror-selected {
   background: #ddd !important;
 }
