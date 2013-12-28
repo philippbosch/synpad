@@ -9,32 +9,23 @@ module.exports = (grunt) ->
         files:
           'build/javascripts/app.js': ['javascripts/*.coffee']
 
+    bower_concat:
+      all:
+        dest: 'build/javascripts/components.js'
+
     concat:
       dist:
         files:
-          'build/javascripts/app.combined.js': [
-            'public/components/jquery/jquery.js',
-            'public/components/codemirror/lib/codemirror.js',
+          'build/javascripts/combined.js': [
+            'build/javascripts/components.js',
             'public/components/codemirror/mode/markdown/markdown.js',
-            'public/components/moment/moment.js',
-            'public/components/angular/angular.js',
-            'public/components/angular-resource/angular-resource.js',
-            'public/components/angular-storage/dist/angular-storage.js',
-            'public/components/angular-moment/angular-moment.js',
-            'public/components/angular-ui-router/release/angular-ui-router.js',
-            'public/components/angular-ui-codemirror/ui-codemirror.js',
-            'public/components/firebase/lib/firebase.js',
-            'public/components/firepad/dist/firepad.js',
-            'public/components/angularfire/angularfire.js',
-            'public/components/bootstrap/dist/js/bootstrap.js',
-            'public/components/showdown/src/showdown.js',
             'build/javascripts/app.js'
           ]
 
     uglify:
       dist:
         files:
-          'dist/javascripts/app.min.js': 'build/javascripts/app.combined.js'
+          'dist/javascripts/app.min.js': 'build/javascripts/combined.js'
 
     compass:
       dist:
@@ -78,6 +69,7 @@ module.exports = (grunt) ->
         src: ['public/index.html']
         ignorePath: 'public'
 
+
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-cssmin'
   grunt.loadNpmTasks 'grunt-contrib-concat'
@@ -89,6 +81,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-compass'
   grunt.loadNpmTasks 'grunt-bower-install'
+  grunt.loadNpmTasks 'grunt-bower-concat'
 
-  grunt.registerTask 'default', ['clean', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
+  grunt.registerTask 'default', ['clean', 'bower_concat', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
   grunt.registerTask 'deploy', ['default', 'rsync', 'clean']
