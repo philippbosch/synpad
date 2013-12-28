@@ -95,12 +95,12 @@ html.no-scroll {
         color: #999;
 
         &, &:hover {
-            background: none;
+            background: white;
         }
 
         &:focus {
             outline: 0;
-            background: none;
+            background: white;
         }
     }
 }
