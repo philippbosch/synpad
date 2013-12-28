@@ -1,19 +1,52 @@
 module.exports = (grunt) ->
+  grunt.loadNpmTasks 'grunt-bower-install'
+  grunt.loadNpmTasks 'grunt-bower-concat'
+  grunt.loadNpmTasks 'grunt-contrib-clean'
+  grunt.loadNpmTasks 'grunt-contrib-coffee'
+  grunt.loadNpmTasks 'grunt-contrib-concat'
+  grunt.loadNpmTasks 'grunt-contrib-connect'
+  grunt.loadNpmTasks 'grunt-contrib-copy'
+  grunt.loadNpmTasks 'grunt-contrib-compass'
+  grunt.loadNpmTasks 'grunt-contrib-compress'
+  grunt.loadNpmTasks 'grunt-contrib-cssmin'
+  grunt.loadNpmTasks 'grunt-contrib-uglify'
+  grunt.loadNpmTasks 'grunt-rsync'
+  grunt.loadNpmTasks 'grunt-targethtml'
+
+  grunt.registerTask 'default', ['clean', 'bower_concat', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
+  grunt.registerTask 'deploy', ['default', 'rsync', 'clean']
+  grunt.registerTask 'serve', ['default', 'connect']
+
   grunt.initConfig
     pkg: grunt.file.readJSON 'package.json'
 
-    clean: ['dist', 'build']
 
-    coffee:
-      compile:
-        files:
-          'build/javascripts/app.js': ['javascripts/*.coffee']
-
-    bower_concat:
+    'bower_concat':
       all:
         dest: 'build/javascripts/components.js'
 
-    concat:
+    'bower-install':
+      target:
+        src: ['public/index.html']
+        ignorePath: 'public'
+
+    'clean':
+      ['dist', 'build']
+
+    'coffee':
+      compile:
+        files:
+          'build/javascripts/app.js': ['javascripts/**/*.coffee']
+
+    'compass':
+      dist:
+        options:
+          config: 'compass.config'
+          cssDir: 'build/stylesheets'
+          fontsDir: 'fonts'
+          imagesDir: 'images'
+
+    'concat':
       dist:
         files:
           'build/javascripts/combined.js': [
@@ -22,20 +55,21 @@ module.exports = (grunt) ->
             'build/javascripts/app.js'
           ]
 
-    uglify:
-      dist:
-        files:
-          'dist/javascripts/app.min.js': 'build/javascripts/combined.js'
-
-    compass:
-      dist:
+    'connect':
+      server:
         options:
-          config: 'compass.config'
-          cssDir: 'build/stylesheets'
-          fontsDir: 'fonts'
-          imagesDir: 'images'
+          port: 8888
+          base: 'dist'
+          keepalive: true
+          open: true
 
-    cssmin:
+    'copy':
+      dist:
+        files: [
+          {cwd: 'public/partials/', expand: true, src: '**', dest: 'dist/partials/'}
+        ]
+
+    'cssmin':
       dist:
         files:
           'dist/stylesheets/screen.min.css': [
@@ -45,18 +79,7 @@ module.exports = (grunt) ->
             'build/stylesheets/screen.css'
           ]
 
-    targethtml:
-      dist:
-        files:
-          'dist/index.html': ['public/index.html']
-
-    copy:
-      dist:
-        files: [
-          {cwd: 'public/partials/', expand: true, src: '**', dest: 'dist/partials/'}
-        ]
-
-    rsync:
+    'rsync':
       dist:
         options:
           src: './dist/'
@@ -64,24 +87,12 @@ module.exports = (grunt) ->
           host: 'synpad@synpad.static.syntop.io'
           recursive: true
 
-    'bower-install':
-      target:
-        src: ['public/index.html']
-        ignorePath: 'public'
+    'targethtml':
+      dist:
+        files:
+          'dist/index.html': ['public/index.html']
 
-
-  grunt.loadNpmTasks 'grunt-contrib-uglify'
-  grunt.loadNpmTasks 'grunt-contrib-cssmin'
-  grunt.loadNpmTasks 'grunt-contrib-concat'
-  grunt.loadNpmTasks 'grunt-contrib-copy'
-  grunt.loadNpmTasks 'grunt-targethtml'
-  grunt.loadNpmTasks 'grunt-rsync'
-  grunt.loadNpmTasks 'grunt-contrib-compress'
-  grunt.loadNpmTasks 'grunt-contrib-clean'
-  grunt.loadNpmTasks 'grunt-contrib-coffee'
-  grunt.loadNpmTasks 'grunt-contrib-compass'
-  grunt.loadNpmTasks 'grunt-bower-install'
-  grunt.loadNpmTasks 'grunt-bower-concat'
-
-  grunt.registerTask 'default', ['clean', 'bower_concat', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
-  grunt.registerTask 'deploy', ['default', 'rsync', 'clean']
+    'uglify':
+      dist:
+        files:
+          'dist/javascripts/app.min.js': 'build/javascripts/combined.js'

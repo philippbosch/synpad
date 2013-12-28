@@ -1,35 +1,7 @@
 "use strict"
 
 angular
-    .module('synpad.controllers', [])
-
-    .controller('MainController', ['$scope', '$state', ($scope, $state) ->
-        $scope.$on '$stateChangeStart', (event, toState, toParams, fromState, fromParams) ->
-            $scope.noScroll = toState.name == 'editor'
-    ])
-
-    .controller('HomeController', ['$scope', '$state', '$firebase', 'firebaseref', ($scope, $state, $firebase, firebaseref) ->
-        ref = firebaseref.child('documents').push()
-        $state.go('editor', id: Math.random().toString(36).substr(2,8))
-    ])
-
-    .controller('ListController', ['$scope', '$firebase', 'firebaseref', ($scope, $firebase, firebaseref) ->
-        $scope.documents = $firebase(firebaseref.child('documents'))
-        $scope.documents.$on 'loaded', ->
-            $scope.documentsLoaded = true
-    ])
-
-    .controller('DocumentController', ['$scope', '$sce', '$state', '$stateParams', '$document', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $state, $stateParams, $document, $firebase, firebaseref, showdown) ->
-        docRef = firebaseref.child('documents').child($stateParams.id)
-        $scope.renderedDocument = $firebase(docRef.child('rendered'))
-
-        docRef.once 'value', (data) ->
-            $state.go('editor', id: $stateParams.id) if not data.val()?.rendered
-
-        $document.bind 'keypress', (event) ->
-            if event.charCode == 95 and $state.current.name == 'document' and $state.params.id == $stateParams.id
-                $state.go('editor', id: $stateParams.id)
-    ])
+    .module('synpad.controllers.editor', [])
 
     .controller('EditorController', ['$scope', '$sce', '$state', '$stateParams', '$location', 'ngStorage', '$firebase', 'firebaseref', 'showdown', ($scope, $sce, $state, $stateParams, $location, ngStorage, $firebase, firebaseref, showdown) ->
         docRef = firebaseref.child('documents').child($stateParams.id)
