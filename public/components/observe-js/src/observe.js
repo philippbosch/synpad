@@ -15,34 +15,89 @@
 (function(global) {
   'use strict';
 
+  var PROP_ADD_TYPE = 'add';
+  var PROP_UPDATE_TYPE = 'update';
+  var PROP_RECONFIGURE_TYPE = 'reconfigure';
+  var PROP_DELETE_TYPE = 'delete';
+  var ARRAY_SPLICE_TYPE = 'splice';
+
+  // Detect and do basic sanity checking on Object/Array.observe.
   function detectObjectObserve() {
     if (typeof Object.observe !== 'function' ||
         typeof Array.observe !== 'function') {
       return false;
     }
 
-    var gotSplice = false;
-    function callback(records) {
-      if (records[0].type === 'splice' && records[1].type === 'splice')
-        gotSplice = true;
+    var records = [];
+
+    function callback(recs) {
+      records = recs;
     }
 
-    var test = [0];
+    var test = {};
+    Object.observe(test, callback);
+    test.id = 1;
+    test.id = 2;
+    delete test.id;
+    Object.deliverChangeRecords(callback);
+    if (records.length !== 3)
+      return false;
+
+    // TODO(rafaelw): Remove this when new change record type names make it to
+    // chrome release.
+    if (records[0].type == 'new' &&
+        records[1].type == 'updated' &&
+        records[2].type == 'deleted') {
+      PROP_ADD_TYPE = 'new';
+      PROP_UPDATE_TYPE = 'updated';
+      PROP_RECONFIGURE_TYPE = 'reconfigured';
+      PROP_DELETE_TYPE = 'deleted';
+    } else if (records[0].type != 'add' ||
+               records[1].type != 'update' ||
+               records[2].type != 'delete') {
+      console.error('Unexpected change record names for Object.observe. ' +
+                    'Using dirty-checking instead');
+      return false;
+    }
+    Object.unobserve(test, callback);
+
+    test = [0];
     Array.observe(test, callback);
     test[1] = 1;
     test.length = 0;
     Object.deliverChangeRecords(callback);
-    return gotSplice;
+    if (records.length != 2)
+      return false;
+    if (records[0].type != ARRAY_SPLICE_TYPE ||
+        records[1].type != ARRAY_SPLICE_TYPE) {
+      return false;
+    }
+    Array.unobserve(test, callback);
+
+    return true;
   }
 
   var hasObserve = detectObjectObserve();
 
-  var hasEval = false;
-  try {
-    var f = new Function('', 'return true;');
-    hasEval = f();
-  } catch (ex) {
+  function detectEval() {
+    // don't test for eval if document has CSP securityPolicy object and we can see that
+    // eval is not supported. This avoids an error message in console even when the exception
+    // is caught
+    if (global.document &&
+        'securityPolicy' in global.document &&
+        !global.document.securityPolicy.allowsEval) {
+      return false;
+    }
+
+    try {
+      var f = new Function('', 'return true;');
+      return f();
+    } catch (ex) {
+      return false;
+    }
   }
+
+  var hasEval = detectEval();
 
   function isIndex(s) {
     return +s === s >>> 0;
@@ -88,13 +143,13 @@
   var ident = identStart + '+' + identPart + '*';
   var elementIndex = '(?:[0-9]|[1-9]+[0-9]+)';
   var identOrElementIndex = '(?:' + ident + '|' + elementIndex + ')';
-  var path = '(?:' + identOrElementIndex + ')(?:\\.' + identOrElementIndex + ')*';
+  var path = '(?:' + identOrElementIndex + ')(?:\\s*\\.\\s*' + identOrElementIndex + ')*';
   var pathRegExp = new RegExp('^' + path + '$');
 
   function isPathValid(s) {
     if (typeof s != 'string')
       return false;
-    s = s.replace(/\s/g, '');
+    s = s.trim();
 
     if (s == '')
       return true;
@@ -105,68 +160,72 @@
     return pathRegExp.test(s);
   }
 
-  // TODO(rafaelw): Make simple LRU cache
-  var pathCache = {};
+  var constructorIsPrivate = {};
 
-  function getPath(str) {
-    var path = pathCache[str];
-    if (path)
-      return path;
-    if (!isPathValid(str))
-      return;
-    var path = new Path(str);
-    pathCache[str] = path;
-    return path;
-  }
+  function Path(s, privateToken) {
+    if (privateToken !== constructorIsPrivate)
+      throw Error('Use Path.get to retrieve path objects');
 
-  function Path(s) {
     if (s.trim() == '')
       return this;
 
     if (isIndex(s)) {
-      this.push(String(s));
+      this.push(s);
       return this;
     }
 
-    s.split(/\./).filter(function(part) {
+    s.split(/\s*\.\s*/).filter(function(part) {
       return part;
     }).forEach(function(part) {
       this.push(part);
     }, this);
 
-    if (hasEval && this.length) {
+    if (hasEval && !hasObserve && this.length) {
       this.getValueFrom = this.compiledGetValueFromFn();
     }
   }
 
+  // TODO(rafaelw): Make simple LRU cache
+  var pathCache = {};
+
+  function getPath(pathString) {
+    if (pathString instanceof Path)
+      return pathString;
+
+    if (pathString == null)
+      pathString = '';
+
+    if (typeof pathString !== 'string')
+      pathString = String(pathString);
+
+    var path = pathCache[pathString];
+    if (path)
+      return path;
+    if (!isPathValid(pathString))
+      return invalidPath;
+    var path = new Path(pathString, constructorIsPrivate);
+    pathCache[pathString] = path;
+    return path;
+  }
+
+  Path.get = getPath;
+
   Path.prototype = createObject({
     __proto__: [],
+    valid: true,
 
     toString: function() {
       return this.join('.');
     },
 
-    getValueFrom: function(obj, allValues) {
+    getValueFrom: function(obj, observedSet) {
       for (var i = 0; i < this.length; i++) {
-        if (obj === undefined || obj === null)
+        if (obj == null)
           return;
+        if (observedSet)
+          observedSet.observe(obj);
         obj = obj[this[i]];
       }
-
-      return obj;
-    },
-
-    getValueFromObserved: function(obj, observedSet) {
-      observedSet.reset();
-      for (var i = 0; i < this.length; i++) {
-        if (obj === undefined || obj === null) {
-          observedSet.cleanup();
-          return;
-        }
-        observedSet.observe(obj);
-        obj = obj[this[i]];
-      }
-
       return obj;
     },
 
@@ -177,13 +236,12 @@
 
       var str = '';
       var pathString = 'obj';
-      str += 'if (obj !== null && obj !== undefined';
+      str += 'if (obj != null';
       var i = 0;
       for (; i < (this.length - 1); i++) {
         var ident = this[i];
         pathString += accessors[i];
-        str += ' &&\n     ' + pathString + ' !== null && ' +
-               pathString + ' !== undefined';
+        str += ' &&\n     ' + pathString + ' != null';
       }
       str += ')\n';
 
@@ -198,27 +256,33 @@
         return false;
 
       for (var i = 0; i < this.length - 1; i++) {
-        if (obj === undefined || obj === null)
+        if (!isObject(obj))
           return false;
         obj = obj[this[i]];
       }
 
-      if (obj === undefined || obj === null)
+      if (!isObject(obj))
         return false;
 
-      obj[this[this.length - 1]] = value;
+      obj[this[i]] = value;
       return true;
     }
   });
+
+  var invalidPath = new Path('', constructorIsPrivate);
+  invalidPath.valid = false;
+  invalidPath.getValueFrom = invalidPath.setValueFrom = function() {};
 
   var MAX_DIRTY_CHECK_CYCLES = 1000;
 
   function dirtyCheck(observer) {
     var cycles = 0;
-    while (cycles < MAX_DIRTY_CHECK_CYCLES && observer.check()) {
-      observer.report();
+    while (cycles < MAX_DIRTY_CHECK_CYCLES && observer.check_()) {
+      observer.report_();
       cycles++;
     }
+    if (global.testingExposeCycleCount)
+      global.dirtyCheckCycleCount = cycles;
   }
 
   function objectIsEmpty(object) {
@@ -281,90 +345,88 @@
     return copy;
   }
 
-  function Observer(object, callback, target, token) {
-    this.closed = false;
-    this.object = object;
-    this.callback = callback;
+  function Observer(object, callback, target) {
+    this.closed_ = false;
+    this.object_ = object;
+    this.callback = callback; // TODO(rafaelw): Used in NodeBind
     // TODO(rafaelw): Hold this.target weakly when WeakRef is available.
-    this.target = target;
-    this.token = token;
-    this.reporting = true;
+    this.target = target; // TODO(rafaelw): Used in NodeBind
+    this.reporting_ = true;
     if (hasObserve) {
       var self = this;
-      this.boundInternalCallback = function(records) {
-        self.internalCallback(records);
+      this.boundInternalCallback_ = function(records) {
+        self.internalCallback_(records);
       };
     }
 
     addToAll(this);
-    this.connect();
-    this.sync(true);
   }
 
   Observer.prototype = {
-    internalCallback: function(records) {
-      if (this.closed)
+    internalCallback_: function(records) {
+      if (this.closed_)
         return;
-      if (this.reporting && this.check(records)) {
-        this.report();
+      if (this.reporting_ && this.check_(records)) {
+        this.report_();
         if (this.testingResults)
           this.testingResults.anyChanged = true;
       }
     },
 
     close: function() {
-      if (this.closed)
+      if (this.closed_)
         return;
-      if (this.object && typeof this.object.unobserved === 'function')
-        this.object.unobserved();
+      if (this.object_ && typeof this.object_.close === 'function')
+        this.object_.close();
 
-      this.disconnect();
-      this.object = undefined;
-      this.closed = true;
+      this.disconnect_();
+      this.object_ = undefined;
+      this.closed_ = true;
     },
 
     deliver: function(testingResults) {
-      if (this.closed)
+      if (this.closed_)
         return;
       if (hasObserve) {
         this.testingResults = testingResults;
-        Object.deliverChangeRecords(this.boundInternalCallback);
+        Object.deliverChangeRecords(this.boundInternalCallback_);
         this.testingResults = undefined;
       } else {
         dirtyCheck(this);
       }
     },
 
-    report: function() {
-      if (!this.reporting)
+    report_: function() {
+      if (!this.reporting_)
         return;
 
-      this.sync(false);
-      this.reportArgs.push(this.token);
-      this.invokeCallback(this.reportArgs);
+      this.sync_(false);
+      if (this.callback) {
+        this.invokeCallback_(this.reportArgs);
+      }
       this.reportArgs = undefined;
     },
 
-    invokeCallback: function(args) {
+    invokeCallback_: function(args) {
       try {
         this.callback.apply(this.target, args);
       } catch (ex) {
         Observer._errorThrownDuringCallback = true;
-        console.error('Exception caught during observer callback: ' + ex);
+        console.error('Exception caught during observer callback: ' + (ex.stack || ex));
       }
     },
 
     reset: function() {
-      if (this.closed)
+      if (this.closed_)
         return;
 
       if (hasObserve) {
-        this.reporting = false;
-        Object.deliverChangeRecords(this.boundInternalCallback);
-        this.reporting = true;
+        this.reporting_ = false;
+        Object.deliverChangeRecords(this.boundInternalCallback_);
+        this.reporting_ = true;
       }
 
-      this.sync(true);
+      this.sync_(true);
     }
   }
 
@@ -415,19 +477,22 @@
 
       for (var i = 0; i < toCheck.length; i++) {
         var observer = toCheck[i];
-        if (observer.closed)
+        if (observer.closed_)
           continue;
 
         if (hasObserve) {
           observer.deliver(results);
-        } else if (observer.check()) {
+        } else if (observer.check_()) {
           results.anyChanged = true;
-          observer.report();
+          observer.report_();
         }
 
         allObservers.push(observer);
       }
     } while (cycles < MAX_DIRTY_CHECK_CYCLES && results.anyChanged);
+
+    if (global.testingExposeCycleCount)
+      global.dirtyCheckCycleCount = cycles;
 
     Observer._allObserversCount = allObservers.length;
     runningMicrotaskCheckpoint = false;
@@ -439,24 +504,26 @@
     };
   }
 
-  function ObjectObserver(object, callback, target, token) {
-    Observer.call(this, object, callback, target, token);
+  function ObjectObserver(object, callback, target) {
+    Observer.call(this, object, callback, target);
+    this.connect_();
+    this.sync_(true);
   }
 
   ObjectObserver.prototype = createObject({
     __proto__: Observer.prototype,
 
-    connect: function() {
+    connect_: function() {
       if (hasObserve)
-        Object.observe(this.object, this.boundInternalCallback);
+        Object.observe(this.object_, this.boundInternalCallback_);
     },
 
-    sync: function(hard) {
+    sync_: function(hard) {
       if (!hasObserve)
-        this.oldObject = copyObject(this.object);
+        this.oldObject = copyObject(this.object_);
     },
 
-    check: function(changeRecords) {
+    check_: function(changeRecords) {
       var diff;
       var oldValues;
       if (hasObserve) {
@@ -464,11 +531,11 @@
           return false;
 
         oldValues = {};
-        diff = diffObjectFromChangeRecords(this.object, changeRecords,
+        diff = diffObjectFromChangeRecords(this.object_, changeRecords,
                                            oldValues);
       } else {
         oldValues = this.oldObject;
-        diff = diffObjectFromOldObject(this.object, this.oldObject);
+        diff = diffObjectFromOldObject(this.object_, this.oldObject);
       }
 
       if (diffIsEmpty(diff))
@@ -483,41 +550,41 @@
       return true;
     },
 
-    disconnect: function() {
+    disconnect_: function() {
       if (!hasObserve)
         this.oldObject = undefined;
-      else if (this.object)
-        Object.unobserve(this.object, this.boundInternalCallback);
+      else if (this.object_)
+        Object.unobserve(this.object_, this.boundInternalCallback_);
     }
   });
 
-  function ArrayObserver(array, callback, target, token) {
+  function ArrayObserver(array, callback, target) {
     if (!Array.isArray(array))
       throw Error('Provided object is not an Array');
-    Observer.call(this, array, callback, target, token);
+    ObjectObserver.call(this, array, callback, target);
   }
 
   ArrayObserver.prototype = createObject({
     __proto__: ObjectObserver.prototype,
 
-    connect: function() {
+    connect_: function() {
       if (hasObserve)
-        Array.observe(this.object, this.boundInternalCallback);
+        Array.observe(this.object_, this.boundInternalCallback_);
     },
 
-    sync: function() {
+    sync_: function() {
       if (!hasObserve)
-        this.oldObject = this.object.slice();
+        this.oldObject = this.object_.slice();
     },
 
-    check: function(changeRecords) {
+    check_: function(changeRecords) {
       var splices;
       if (hasObserve) {
         if (!changeRecords)
           return false;
-        splices = projectArraySplices(this.object, changeRecords);
+        splices = projectArraySplices(this.object_, changeRecords);
       } else {
-        splices = calcSplices(this.object, 0, this.object.length,
+        splices = calcSplices(this.object_, 0, this.object_.length,
                               this.oldObject, 0, this.oldObject.length);
       }
 
@@ -542,16 +609,14 @@
     });
   };
 
-  function getPathValue(object, path) {
-    return path.getValueFrom(object);
-  }
-
   function ObservedSet(callback) {
     this.arr = [];
     this.callback = callback;
     this.isObserved = true;
   }
 
+  // TODO(rafaelw): Consider surfacing a way to avoid observing prototype
+  // ancestors which are expected not to change (e.g. Element, Node...).
   var objProto = Object.getPrototypeOf({});
   var arrayProto = Object.getPrototypeOf([]);
   ObservedSet.prototype = {
@@ -597,88 +662,207 @@
     }
   };
 
-  function PathObserver(object, pathString, callback, target, token) {
-    this.value = undefined;
-
-    var path = getPath(pathString);
-    if (!path) {
-      this.closed = true;
-      this.value = undefined;
+  function PathObserver(object, path, callback, target, transformFn,
+                        setValueFn) {
+    var path = path instanceof Path ? path : getPath(path);
+    if (!path.valid || !path.length || !isObject(object)) {
+      this.value_ = path.getValueFrom(object);
+      this.value = transformFn ? transformFn(this.value_) : this.value_;
+      this.closed_ = true;
       return;
     }
 
-    if (!path.length) {
-      this.closed = true;
-      this.value = object;
-      return;
-    }
+    Observer.call(this, object, callback, target);
+    this.transformFn_ = transformFn;
+    this.setValueFn_ = setValueFn;
+    this.path_ = path;
 
-    if (!isObject(object)) {
-      this.closed = true;
-      this.value = undefined;
-      return;
-    }
-
-    this.path = path;
-    Observer.call(this, object, callback, target, token);
+    this.connect_();
+    this.sync_(true);
   }
 
   PathObserver.prototype = createObject({
     __proto__: Observer.prototype,
 
-    connect: function() {
+    connect_: function() {
       if (hasObserve)
-        this.observedSet = new ObservedSet(this.boundInternalCallback);
+        this.observedSet_ = new ObservedSet(this.boundInternalCallback_);
     },
 
-    disconnect: function() {
+    disconnect_: function() {
       this.value = undefined;
-      if (hasObserve) {
-        this.observedSet.reset();
-        this.observedSet.cleanup();
-        this.observedSet = undefined;
+      this.value_ = undefined;
+      if (this.observedSet_) {
+        this.observedSet_.reset();
+        this.observedSet_.cleanup();
+        this.observedSet_ = undefined;
       }
     },
 
-    check: function() {
-      this.value = !hasObserve ? this.path.getValueFrom(this.object) :
-          this.path.getValueFromObserved(this.object, this.observedSet);
-      if (areSameValue(this.value, this.oldValue))
+    check_: function() {
+      // Note: Extracting this to a member function for use here and below
+      // regresses dirty-checking path perf by about 25% =-(.
+      if (this.observedSet_)
+        this.observedSet_.reset();
+
+      this.value_ = this.path_.getValueFrom(this.object_, this.observedSet_);
+
+      if (this.observedSet_)
+        this.observedSet_.cleanup();
+
+      if (areSameValue(this.value_, this.oldValue_))
         return false;
 
+      this.value = this.transformFn_ ? this.transformFn_(this.value_)
+                                     : this.value_;
       this.reportArgs = [this.value, this.oldValue];
       return true;
     },
 
-    sync: function(hard) {
+    sync_: function(hard) {
       if (hard) {
-        this.value = !hasObserve ? this.path.getValueFrom(this.object) :
-            this.path.getValueFromObserved(this.object, this.observedSet);
+        if (this.observedSet_)
+          this.observedSet_.reset();
+
+        this.value_ = this.path_.getValueFrom(this.object_, this.observedSet_);
+        this.value = this.transformFn_ ? this.transformFn_(this.value_)
+                                       : this.value_;
+
+        if (this.observedSet_)
+          this.observedSet_.cleanup();
       }
+
+      this.oldValue_ = this.value_;
       this.oldValue = this.value;
+    },
+
+    setValue: function(newValue) {
+      if (this.setValueFn_)
+        this.setValueFn_(newValue);
+      else if (this.path_)
+        this.path_.setValueFrom(this.object_, newValue);
     }
   });
 
-  PathObserver.getValueAtPath = function(obj, pathString) {
-    var path = getPath(pathString);
-    if (!path)
-      return;
-    return path.getValueFrom(obj);
+  function CompoundPathObserver(callback, target, transformFn, setValueFn) {
+    Observer.call(this, undefined, callback, target);
+    this.transformFn_ = transformFn;
+    this.setValueFn_ = setValueFn;
+
+    this.observed_ = [];
+    this.values_ = [];
+    this.value = undefined;
+    this.oldValue = undefined;
+    this.oldValues_ = undefined;
+    this.changeFlags_ = undefined;
+    this.started_ = false;
   }
 
-  PathObserver.setValueAtPath = function(obj, pathString, value) {
-    var path = getPath(pathString);
-    if (!path)
-      return;
+  CompoundPathObserver.prototype = createObject({
+    __proto__: PathObserver.prototype,
 
-    path.setValueFrom(obj, value);
-  };
+    // TODO(rafaelw): Consider special-casing when |object| is a PathObserver
+    // and path 'value' to avoid explicit observation.
+    addPath: function(object, path) {
+      if (this.started_)
+        throw Error('Cannot add more paths once started.');
 
-  var knownRecordTypes = {
-    'new': true,
-    'updated': true,
-    'deleted': true
-  };
+      var path = path instanceof Path ? path : getPath(path);
+      var value = path.getValueFrom(object);
+
+      this.observed_.push(object, path);
+      this.values_.push(value);
+    },
+
+    start: function() {
+      this.started_ = true;
+      this.connect_();
+      this.sync_(true);
+    },
+
+    getValues_: function() {
+      if (this.observedSet_)
+        this.observedSet_.reset();
+
+      var anyChanged = false;
+      for (var i = 0; i < this.observed_.length; i = i+2) {
+        var path = this.observed_[i+1];
+        var object = this.observed_[i];
+        var value = path.getValueFrom(object, this.observedSet_);
+        var oldValue = this.values_[i/2];
+        if (!areSameValue(value, oldValue)) {
+          if (!anyChanged && !this.transformFn_) {
+            this.oldValues_ = this.oldValues_ || [];
+            this.changeFlags_ = this.changeFlags_ || [];
+            for (var j = 0; j < this.values_.length; j++) {
+              this.oldValues_[j] = this.values_[j];
+              this.changeFlags_[j] = false;
+            }
+          }
+
+          if (!this.transformFn_)
+            this.changeFlags_[i/2] = true;
+
+          this.values_[i/2] = value;
+          anyChanged = true;
+        }
+      }
+
+      if (this.observedSet_)
+        this.observedSet_.cleanup();
+
+      return anyChanged;
+    },
+
+    check_: function() {
+      if (!this.getValues_())
+        return;
+
+      if (this.transformFn_) {
+        this.value = this.transformFn_(this.values_);
+
+        if (areSameValue(this.value, this.oldValue))
+          return false;
+
+        this.reportArgs = [this.value, this.oldValue];
+      } else {
+        this.reportArgs = [this.values_, this.oldValues_, this.changeFlags_,
+                           this.observed_];
+      }
+
+      return true;
+    },
+
+    sync_: function(hard) {
+      if (hard) {
+        this.getValues_();
+        if (this.transformFn_)
+          this.value = this.transformFn_(this.values_);
+      }
+
+      if (this.transformFn_)
+        this.oldValue = this.value;
+    },
+
+    close: function() {
+      if (this.observed_) {
+        for (var i = 0; i < this.observed_.length; i = i + 2) {
+          var object = this.observed_[i];
+          if (object && typeof object.close === 'function')
+            object.close();
+        }
+        this.observed_ = undefined;
+        this.values_ = undefined;
+      }
+
+      Observer.prototype.close.call(this);
+    }
+  });
+
+  var expectedRecordTypes = {};
+  expectedRecordTypes[PROP_ADD_TYPE] = true;
+  expectedRecordTypes[PROP_UPDATE_TYPE] = true;
+  expectedRecordTypes[PROP_DELETE_TYPE] = true;
 
   function notifyFunction(object, name) {
     if (typeof Object.observe !== 'function')
@@ -701,36 +885,35 @@
   // every PathObserver used by defineProperty share a single Object.observe
   // callback, and thus get() can simply call observer.deliver() and any changes
   // to any dependent value will be observed.
-  PathObserver.defineProperty = function(object, name, descriptor) {
+  PathObserver.defineProperty = function(target, name, object, path) {
     // TODO(rafaelw): Validate errors
-    var obj = descriptor.object;
-    var path = getPath(descriptor.path);
-    var notify = notifyFunction(object, name);
+    path = getPath(path);
+    var notify = notifyFunction(target, name);
 
-    var observer = new PathObserver(obj, descriptor.path,
+    var observer = new PathObserver(object, path,
         function(newValue, oldValue) {
           if (notify)
-            notify('updated', oldValue);
+            notify(PROP_UPDATE_TYPE, oldValue);
         }
     );
 
-    Object.defineProperty(object, name, {
+    Object.defineProperty(target, name, {
       get: function() {
-        return path.getValueFrom(obj);
+        return path.getValueFrom(object);
       },
       set: function(newValue) {
-        path.setValueFrom(obj, newValue);
+        path.setValueFrom(object, newValue);
       },
       configurable: true
     });
 
     return {
       close: function() {
-        var oldValue = path.getValueFrom(obj);
+        var oldValue = path.getValueFrom(object);
         if (notify)
           observer.deliver();
         observer.close();
-        Object.defineProperty(object, name, {
+        Object.defineProperty(target, name, {
           value: oldValue,
           writable: true,
           configurable: true
@@ -745,7 +928,7 @@
 
     for (var i = 0; i < changeRecords.length; i++) {
       var record = changeRecords[i];
-      if (!knownRecordTypes[record.type]) {
+      if (!expectedRecordTypes[record.type]) {
         console.error('Unknown changeRecord type: ' + record.type);
         console.error(record);
         continue;
@@ -754,10 +937,10 @@
       if (!(record.name in oldValues))
         oldValues[record.name] = record.oldValue;
 
-      if (record.type == 'updated')
+      if (record.type == PROP_UPDATE_TYPE)
         continue;
 
-      if (record.type == 'new') {
+      if (record.type == PROP_ADD_TYPE) {
         if (record.name in removed)
           delete removed[record.name];
         else
@@ -766,7 +949,7 @@
         continue;
       }
 
-      // type = 'deleted'
+      // type = 'delete'
       if (record.name in added) {
         delete added[record.name];
         delete oldValues[record.name];
@@ -798,124 +981,6 @@
     };
   }
 
-  // Note: This function is *based* on the computation of the Levenshtein
-  // "edit" distance. The one change is that "updates" are treated as two
-  // edits - not one. With Array splices, an update is really a delete
-  // followed by an add. By retaining this, we optimize for "keeping" the
-  // maximum array items in the original array. For example:
-  //
-  //   'xxxx123' -> '123yyyy'
-  //
-  // With 1-edit updates, the shortest path would be just to update all seven
-  // characters. With 2-edit updates, we delete 4, leave 3, and add 4. This
-  // leaves the substring '123' intact.
-  function calcEditDistances(current, currentStart, currentEnd,
-                             old, oldStart, oldEnd) {
-    // "Deletion" columns
-    var rowCount = oldEnd - oldStart + 1;
-    var columnCount = currentEnd - currentStart + 1;
-    var distances = new Array(rowCount);
-
-    // "Addition" rows. Initialize null column.
-    for (var i = 0; i < rowCount; i++) {
-      distances[i] = new Array(columnCount);
-      distances[i][0] = i;
-    }
-
-    // Initialize null row
-    for (var j = 0; j < columnCount; j++)
-      distances[0][j] = j;
-
-    for (var i = 1; i < rowCount; i++) {
-      for (var j = 1; j < columnCount; j++) {
-        if (old[oldStart + i - 1] === current[currentStart + j - 1])
-          distances[i][j] = distances[i - 1][j - 1];
-        else {
-          var north = distances[i - 1][j] + 1;
-          var west = distances[i][j - 1] + 1;
-          distances[i][j] = north < west ? north : west;
-        }
-      }
-    }
-
-    return distances;
-  }
-
-  var EDIT_LEAVE = 0;
-  var EDIT_UPDATE = 1;
-  var EDIT_ADD = 2;
-  var EDIT_DELETE = 3;
-
-  // This starts at the final weight, and walks "backward" by finding
-  // the minimum previous weight recursively until the origin of the weight
-  // matrix.
-  function spliceOperationsFromEditDistances(distances) {
-    var i = distances.length - 1;
-    var j = distances[0].length - 1;
-    var current = distances[i][j];
-    var edits = [];
-    while (i > 0 || j > 0) {
-      if (i == 0) {
-        edits.push(EDIT_ADD);
-        j--;
-        continue;
-      }
-      if (j == 0) {
-        edits.push(EDIT_DELETE);
-        i--;
-        continue;
-      }
-      var northWest = distances[i - 1][j - 1];
-      var west = distances[i - 1][j];
-      var north = distances[i][j - 1];
-
-      var min;
-      if (west < north)
-        min = west < northWest ? west : northWest;
-      else
-        min = north < northWest ? north : northWest;
-
-      if (min == northWest) {
-        if (northWest == current) {
-          edits.push(EDIT_LEAVE);
-        } else {
-          edits.push(EDIT_UPDATE);
-          current = northWest;
-        }
-        i--;
-        j--;
-      } else if (min == west) {
-        edits.push(EDIT_DELETE);
-        i--;
-        current = west;
-      } else {
-        edits.push(EDIT_ADD);
-        j--;
-        current = north;
-      }
-    }
-
-    edits.reverse();
-    return edits;
-  }
-
-  function sharedPrefix(arr1, arr2, searchLength) {
-    for (var i = 0; i < searchLength; i++)
-      if (arr1[i] !== arr2[i])
-        return i;
-    return searchLength;
-  }
-
-  function sharedSuffix(arr1, arr2, searchLength) {
-    var index1 = arr1.length;
-    var index2 = arr2.length;
-    var count = 0;
-    while (count < searchLength && arr1[--index1] === arr2[--index2])
-      count++;
-
-    return count;
-  }
-
   function newSplice(index, removed, addedCount) {
     return {
       index: index,
@@ -924,108 +989,249 @@
     };
   }
 
-  /**
-   * Splice Projection functions:
-   *
-   * A splice map is a representation of how a previous array of items
-   * was transformed into a new array of items. Conceptually it is a list of
-   * tuples of
-   *
-   *   <index, removed, addedCount>
-   *
-   * which are kept in ascending index order of. The tuple represents that at
-   * the |index|, |removed| sequence of items were removed, and counting forward
-   * from |index|, |addedCount| items were added.
-   */
+  var EDIT_LEAVE = 0;
+  var EDIT_UPDATE = 1;
+  var EDIT_ADD = 2;
+  var EDIT_DELETE = 3;
 
-  /**
-   * Lacking individual splice mutation information, the minimal set of
-   * splices can be synthesized given the previous state and final state of an
-   * array. The basic approach is to calculate the edit distance matrix and
-   * choose the shortest path through it.
-   *
-   * Complexity: O(l * p)
-   *   l: The length of the current array
-   *   p: The length of the old array
-   */
+  function ArraySplice() {}
+
+  ArraySplice.prototype = {
+
+    // Note: This function is *based* on the computation of the Levenshtein
+    // "edit" distance. The one change is that "updates" are treated as two
+    // edits - not one. With Array splices, an update is really a delete
+    // followed by an add. By retaining this, we optimize for "keeping" the
+    // maximum array items in the original array. For example:
+    //
+    //   'xxxx123' -> '123yyyy'
+    //
+    // With 1-edit updates, the shortest path would be just to update all seven
+    // characters. With 2-edit updates, we delete 4, leave 3, and add 4. This
+    // leaves the substring '123' intact.
+    calcEditDistances: function(current, currentStart, currentEnd,
+                                old, oldStart, oldEnd) {
+      // "Deletion" columns
+      var rowCount = oldEnd - oldStart + 1;
+      var columnCount = currentEnd - currentStart + 1;
+      var distances = new Array(rowCount);
+
+      // "Addition" rows. Initialize null column.
+      for (var i = 0; i < rowCount; i++) {
+        distances[i] = new Array(columnCount);
+        distances[i][0] = i;
+      }
+
+      // Initialize null row
+      for (var j = 0; j < columnCount; j++)
+        distances[0][j] = j;
+
+      for (var i = 1; i < rowCount; i++) {
+        for (var j = 1; j < columnCount; j++) {
+          if (this.equals(current[currentStart + j - 1], old[oldStart + i - 1]))
+            distances[i][j] = distances[i - 1][j - 1];
+          else {
+            var north = distances[i - 1][j] + 1;
+            var west = distances[i][j - 1] + 1;
+            distances[i][j] = north < west ? north : west;
+          }
+        }
+      }
+
+      return distances;
+    },
+
+    // This starts at the final weight, and walks "backward" by finding
+    // the minimum previous weight recursively until the origin of the weight
+    // matrix.
+    spliceOperationsFromEditDistances: function(distances) {
+      var i = distances.length - 1;
+      var j = distances[0].length - 1;
+      var current = distances[i][j];
+      var edits = [];
+      while (i > 0 || j > 0) {
+        if (i == 0) {
+          edits.push(EDIT_ADD);
+          j--;
+          continue;
+        }
+        if (j == 0) {
+          edits.push(EDIT_DELETE);
+          i--;
+          continue;
+        }
+        var northWest = distances[i - 1][j - 1];
+        var west = distances[i - 1][j];
+        var north = distances[i][j - 1];
+
+        var min;
+        if (west < north)
+          min = west < northWest ? west : northWest;
+        else
+          min = north < northWest ? north : northWest;
+
+        if (min == northWest) {
+          if (northWest == current) {
+            edits.push(EDIT_LEAVE);
+          } else {
+            edits.push(EDIT_UPDATE);
+            current = northWest;
+          }
+          i--;
+          j--;
+        } else if (min == west) {
+          edits.push(EDIT_DELETE);
+          i--;
+          current = west;
+        } else {
+          edits.push(EDIT_ADD);
+          j--;
+          current = north;
+        }
+      }
+
+      edits.reverse();
+      return edits;
+    },
+
+    /**
+     * Splice Projection functions:
+     *
+     * A splice map is a representation of how a previous array of items
+     * was transformed into a new array of items. Conceptually it is a list of
+     * tuples of
+     *
+     *   <index, removed, addedCount>
+     *
+     * which are kept in ascending index order of. The tuple represents that at
+     * the |index|, |removed| sequence of items were removed, and counting forward
+     * from |index|, |addedCount| items were added.
+     */
+
+    /**
+     * Lacking individual splice mutation information, the minimal set of
+     * splices can be synthesized given the previous state and final state of an
+     * array. The basic approach is to calculate the edit distance matrix and
+     * choose the shortest path through it.
+     *
+     * Complexity: O(l * p)
+     *   l: The length of the current array
+     *   p: The length of the old array
+     */
+    calcSplices: function(current, currentStart, currentEnd,
+                          old, oldStart, oldEnd) {
+      var prefixCount = 0;
+      var suffixCount = 0;
+
+      var minLength = Math.min(currentEnd - currentStart, oldEnd - oldStart);
+      if (currentStart == 0 && oldStart == 0)
+        prefixCount = this.sharedPrefix(current, old, minLength);
+
+      if (currentEnd == current.length && oldEnd == old.length)
+        suffixCount = this.sharedSuffix(current, old, minLength - prefixCount);
+
+      currentStart += prefixCount;
+      oldStart += prefixCount;
+      currentEnd -= suffixCount;
+      oldEnd -= suffixCount;
+
+      if (currentEnd - currentStart == 0 && oldEnd - oldStart == 0)
+        return [];
+
+      if (currentStart == currentEnd) {
+        var splice = newSplice(currentStart, [], 0);
+        while (oldStart < oldEnd)
+          splice.removed.push(old[oldStart++]);
+
+        return [ splice ];
+      } else if (oldStart == oldEnd)
+        return [ newSplice(currentStart, [], currentEnd - currentStart) ];
+
+      var ops = this.spliceOperationsFromEditDistances(
+          this.calcEditDistances(current, currentStart, currentEnd,
+                                 old, oldStart, oldEnd));
+
+      var splice = undefined;
+      var splices = [];
+      var index = currentStart;
+      var oldIndex = oldStart;
+      for (var i = 0; i < ops.length; i++) {
+        switch(ops[i]) {
+          case EDIT_LEAVE:
+            if (splice) {
+              splices.push(splice);
+              splice = undefined;
+            }
+
+            index++;
+            oldIndex++;
+            break;
+          case EDIT_UPDATE:
+            if (!splice)
+              splice = newSplice(index, [], 0);
+
+            splice.addedCount++;
+            index++;
+
+            splice.removed.push(old[oldIndex]);
+            oldIndex++;
+            break;
+          case EDIT_ADD:
+            if (!splice)
+              splice = newSplice(index, [], 0);
+
+            splice.addedCount++;
+            index++;
+            break;
+          case EDIT_DELETE:
+            if (!splice)
+              splice = newSplice(index, [], 0);
+
+            splice.removed.push(old[oldIndex]);
+            oldIndex++;
+            break;
+        }
+      }
+
+      if (splice) {
+        splices.push(splice);
+      }
+      return splices;
+    },
+
+    sharedPrefix: function(current, old, searchLength) {
+      for (var i = 0; i < searchLength; i++)
+        if (!this.equals(current[i], old[i]))
+          return i;
+      return searchLength;
+    },
+
+    sharedSuffix: function(current, old, searchLength) {
+      var index1 = current.length;
+      var index2 = old.length;
+      var count = 0;
+      while (count < searchLength && this.equals(current[--index1], old[--index2]))
+        count++;
+
+      return count;
+    },
+
+    calculateSplices: function(current, previous) {
+      return this.calcSplices(current, 0, current.length, previous, 0,
+                              previous.length);
+    },
+
+    equals: function(currentValue, previousValue) {
+      return currentValue === previousValue;
+    }
+  };
+
+  var arraySplice = new ArraySplice();
+
   function calcSplices(current, currentStart, currentEnd,
                        old, oldStart, oldEnd) {
-    var prefixCount = 0;
-    var suffixCount = 0;
-
-    var minLength = Math.min(currentEnd - currentStart, oldEnd - oldStart);
-    if (currentStart == 0 && oldStart == 0)
-      prefixCount = sharedPrefix(current, old, minLength);
-
-    if (currentEnd == current.length && oldEnd == old.length)
-      suffixCount = sharedSuffix(current, old, minLength - prefixCount);
-
-    currentStart += prefixCount;
-    oldStart += prefixCount;
-    currentEnd -= suffixCount;
-    oldEnd -= suffixCount;
-
-    if (currentEnd - currentStart == 0 && oldEnd - oldStart == 0)
-      return [];
-
-    if (currentStart == currentEnd) {
-      var splice = newSplice(currentStart, [], 0);
-      while (oldStart < oldEnd)
-        splice.removed.push(old[oldStart++]);
-
-      return [ splice ];
-    } else if (oldStart == oldEnd)
-      return [ newSplice(currentStart, [], currentEnd - currentStart) ];
-
-    var ops = spliceOperationsFromEditDistances(calcEditDistances(current, currentStart, currentEnd,
-                                           old, oldStart, oldEnd));
-
-    var splice = undefined;
-    var splices = [];
-    var index = currentStart;
-    var oldIndex = oldStart;
-    for (var i = 0; i < ops.length; i++) {
-      switch(ops[i]) {
-        case EDIT_LEAVE:
-          if (splice) {
-            splices.push(splice);
-            splice = undefined;
-          }
-
-          index++;
-          oldIndex++;
-          break;
-        case EDIT_UPDATE:
-          if (!splice)
-            splice = newSplice(index, [], 0);
-
-          splice.addedCount++;
-          index++;
-
-          splice.removed.push(old[oldIndex]);
-          oldIndex++;
-          break;
-        case EDIT_ADD:
-          if (!splice)
-            splice = newSplice(index, [], 0);
-
-          splice.addedCount++;
-          index++;
-          break;
-        case EDIT_DELETE:
-          if (!splice)
-            splice = newSplice(index, [], 0);
-
-          splice.removed.push(old[oldIndex]);
-          oldIndex++;
-          break;
-      }
-    }
-
-    if (splice) {
-      splices.push(splice);
-    }
-    return splices;
+    return arraySplice.calcSplices(current, currentStart, currentEnd,
+                                   old, oldStart, oldEnd);
   }
 
   function intersect(start1, end1, start2, end2) {
@@ -1131,12 +1337,12 @@
     for (var i = 0; i < changeRecords.length; i++) {
       var record = changeRecords[i];
       switch(record.type) {
-        case 'splice':
+        case ARRAY_SPLICE_TYPE:
           mergeSplice(splices, record.index, record.removed.slice(), record.addedCount);
           break;
-        case 'new':
-        case 'updated':
-        case 'deleted':
+        case PROP_ADD_TYPE:
+        case PROP_UPDATE_TYPE:
+        case PROP_DELETE_TYPE:
           if (!isIndex(record.name))
             continue;
           var index = toNumber(record.name);
@@ -1175,9 +1381,22 @@
   global.Observer.hasObjectObserve = hasObserve;
   global.ArrayObserver = ArrayObserver;
   global.ArrayObserver.calculateSplices = function(current, previous) {
-    return calcSplices(current, 0, current.length, previous, 0, previous.length);
+    return arraySplice.calculateSplices(current, previous);
   };
+
+  global.ArraySplice = ArraySplice;
   global.ObjectObserver = ObjectObserver;
   global.PathObserver = PathObserver;
+  global.CompoundPathObserver = CompoundPathObserver;
   global.Path = Path;
-})(typeof global !== 'undefined' && global ? global : this);
+
+  // TODO(rafaelw): Only needed for testing until new change record names
+  // make it to release.
+  global.Observer.changeRecordTypes = {
+    add: PROP_ADD_TYPE,
+    update: PROP_UPDATE_TYPE,
+    reconfigure: PROP_RECONFIGURE_TYPE,
+    'delete': PROP_DELETE_TYPE,
+    splice: ARRAY_SPLICE_TYPE
+  };
+})(typeof global !== 'undefined' && global ? global : this || window);

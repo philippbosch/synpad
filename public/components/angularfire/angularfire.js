@@ -358,6 +358,8 @@ AngularFire.prototype = {
   // If event handlers for a specified event were attached, call them.
   _broadcastEvent: function(evt, param) {
     var cbs;
+    var self = this;
+
     switch (evt) {
     case "change":
       cbs = this._onChange;
@@ -369,10 +371,17 @@ AngularFire.prototype = {
       cbs = [];
       break;
     }
+
+    function _wrapTimeout(cb, param) {
+      self._timeout(function() {
+        cb(param);
+      });
+    }
+
     if (cbs.length > 0) {
       for (var i = 0; i < cbs.length; i++) {
         if (typeof cbs[i] == "function") {
-          cbs[i](param);
+          _wrapTimeout(cbs[i], param);
         }
       }
     }
@@ -537,7 +546,8 @@ AngularFireAuth.prototype = {
       user: null,
       $login: self.login.bind(self),
       $logout: self.logout.bind(self),
-      $createUser: self.createUser.bind(self)
+      $createUser: self.createUser.bind(self),
+      $changePassword: self.changePassword.bind(self)
     };
 
     if (self._options.path && self._route !== null) {
@@ -623,8 +633,8 @@ AngularFireAuth.prototype = {
             deferred.reject(err);
             self._rootScope.$broadcast("$firebaseAuth:error", err);
           } else {
-            self._deferred = deferred;
-            self._loggedIn(claims);
+            deferred.resolve(claims.d);
+            self._loggedIn(claims.d, claims);
           }
         });
       } catch(e) {
@@ -691,10 +701,11 @@ AngularFireAuth.prototype = {
   },
 
   // Common function to trigger a login event on the root scope.
-  _loggedIn: function(user) {
+  _loggedIn: function(user, claims) {
     var self = this;
     self._timeout(function() {
       self._object.user = user;
+      self._object.claims = claims||null;
       self._authenticated = true;
       self._rootScope.$broadcast("$firebaseAuth:login", user);
       if (self._redirectTo) {

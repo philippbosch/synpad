@@ -1,6 +1,5 @@
 {
   "name": "firepad",
-  "version": "0.1.2",
   "homepage": "http://www.firepad.io",
   "authors": [
     "Michael Lehenbauer"
@@ -8,7 +7,6 @@
   "description": "Collaborative Text Editing powered by Firebase",
   "main": [
     "dist/firepad.js",
-    "dist/firepad.min.js",
     "dist/firepad.css",
     "dist/firepad.eot"
   ],
@@ -24,14 +22,14 @@
     "package.json",
     "lib"
   ],
-  "_release": "0.1.2",
+  "_release": "a0b564a274",
   "_resolution": {
-    "type": "version",
-    "tag": "v0.1.2",
-    "commit": "546b6e37428b7dc991e990932cdb6bba080e730c"
+    "type": "branch",
+    "branch": "fix-bower.json",
+    "commit": "a0b564a27453e5c784673ffb1d2d09a4407b5832"
   },
-  "_source": "git://github.com/firebase/firepad.git",
-  "_target": "~0.1.2",
-  "_originalSource": "firepad",
+  "_source": "git@github.com:philippbosch/firepad.git",
+  "_target": "fix-bower.json",
+  "_originalSource": "git@github.com:philippbosch/firepad.git",
   "_direct": true
 }

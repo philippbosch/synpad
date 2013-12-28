@@ -73,6 +73,10 @@ module.exports = (grunt) ->
           host: 'synpad@synpad.static.syntop.io'
           recursive: true
 
+    'bower-install':
+      target:
+        src: ['public/index.html']
+        ignorePath: 'public'
 
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-cssmin'
@@ -84,6 +88,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-clean'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-compass'
+  grunt.loadNpmTasks 'grunt-bower-install'
 
   grunt.registerTask 'default', ['clean', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
   grunt.registerTask 'deploy', ['default', 'rsync', 'clean']

@@ -1,15 +1,27 @@
 {
   "name": "showdown",
   "homepage": "https://github.com/coreyti/showdown",
-  "version": "0.3.1",
-  "_release": "0.3.1",
+  "authors": [
+    "John Fraser"
+  ],
+  "description": "JavaScript port of Markdown",
+  "main": [
+    "src/showdown.js"
+  ],
+  "keywords": [
+    "markdown",
+    "md",
+    "mdown"
+  ],
+  "license": "BSD",
+  "_release": "a73ce18847",
   "_resolution": {
-    "type": "version",
-    "tag": "v0.3.1",
-    "commit": "6b21d1497d6720e2f6279105b07764ce349b32ce"
+    "type": "branch",
+    "branch": "bower-json",
+    "commit": "a73ce18847308ffae24d4c6ee221324bb93de4ec"
   },
-  "_source": "git://github.com/coreyti/showdown.git",
-  "_target": "~0.3.1",
-  "_originalSource": "showdown",
+  "_source": "git@github.com:philippbosch/showdown.git",
+  "_target": "bower-json",
+  "_originalSource": "git@github.com:philippbosch/showdown.git",
   "_direct": true
 }
