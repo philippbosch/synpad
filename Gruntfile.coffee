@@ -11,6 +11,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-cssmin'
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-rsync'
+  grunt.loadNpmTasks 'grunt-shell'
   grunt.loadNpmTasks 'grunt-targethtml'
 
   grunt.registerTask 'default', ['clean', 'bower_concat', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
