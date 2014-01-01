@@ -21,9 +21,8 @@
     "angular-storage": "~0.3.0",
     "angular-ui-codemirror": "~0.0.7",
     "angular-moment": "~0.6.0",
-    "firepad": "git@github.com:philippbosch/firepad.git#fix-bower.json",
-    "angularfire": "git@github.com:philippbosch/angularFire.git#fix-bower.json",
+    "firepad": "https://github.com/philippbosch/firepad.git#fix-bower.json",
+    "angularfire": "https://github.com/philippbosch/angularFire.git#fix-bower.json",
     "observe-js": "~0.1.1",
-    "showdown": "git@github.com:philippbosch/showdown.git#bower-json"
-  }
+    "showdown": "https://github.com/philippbosch/showdown.git#bower-json"  }
 }
