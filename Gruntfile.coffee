@@ -14,7 +14,7 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-targethtml'
 
   grunt.registerTask 'default', ['clean', 'bower_concat', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
-  grunt.registerTask 'deploy', ['default', 'rsync', 'clean']
+  grunt.registerTask 'dist', ['default']
   grunt.registerTask 'serve', ['default', 'connect']
 
   grunt.initConfig
