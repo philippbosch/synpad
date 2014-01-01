@@ -15,6 +15,7 @@ module.exports = (grunt) ->
 
   grunt.registerTask 'default', ['clean', 'bower_concat', 'coffee', 'concat', 'uglify', 'compass', 'cssmin', 'targethtml', 'copy']
   grunt.registerTask 'dist', ['default']
+  grunt.registerTask 'deploy', ['dist', 'shell:pushToDokku']
   grunt.registerTask 'serve', ['default', 'connect']
 
   grunt.initConfig
@@ -86,6 +87,13 @@ module.exports = (grunt) ->
           dest: 'public_html'
           host: 'synpad@synpad.static.syntop.io'
           recursive: true
+
+    'shell':
+      pushToDokku:
+        options:
+          stdout: true
+          stderr: true
+        command: 'git push pbsites master'
 
     'targethtml':
       dist:
