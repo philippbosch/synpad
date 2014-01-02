@@ -12,7 +12,7 @@ http {
     server {
         listen <%= ENV['PORT'] %>;
         server_name  _;
-        root /app/www;
+        root /app/dist;
         index index.html;
 
         location !~/(javascripts|stylesheets|partials) {
