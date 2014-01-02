@@ -14,7 +14,8 @@ http {
         server_name  _;
         root /app/www;
         index index.html;
-        if (!-e $request_filename) {
+
+        location !~/(javascripts|stylesheets|partials) {
             rewrite ^(.*)$ /index.html break;
         }
     }
