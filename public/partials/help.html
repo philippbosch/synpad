@@ -1,0 +1,29 @@
+<div class="container">
+    <div class="page-header">
+        <h1><a ui-sref="home">synpad</a> <small>{{ dbname }}</small></h1>
+    </div>
+
+    <h4>Creating a new document</h4>
+    <p>You can either go to <a href="http://{{ dbname }}.synpad.net/">{{ dbname }}.synpad.net</a>, and use the form to create a new document, or you can simply go to <a href="http://{{ dbname }}.synpad.net/name-of-your-document">{{ dbname }}.synpad.net/name-of-your-document</a> to choose a specific name. If that document does not exist yet, it will be created for you and you will be redirected to the edit view.</p>
+
+    <hr>
+
+    <h4>Editing an existing document</h4>
+    <p>Say you want to edit the document <code>foo</code> which is located at <a href="http://{{ dbname }}.synpad.net/foo">{{ dbname }}.synpad.net/foo</a>. Simply append an underscore <code>_</code>to the URL to go to the edit view for that document: <a href="http://{{ dbname }}.synpad.net/foo_">{{ dbname }}.synpad.net/foo_</a>.</p>
+    <p>If you currently looking at the read-only view of that document, you can also just hit the underscore <code>_</code> key on your keyboard.</p>
+
+    <hr>
+
+    <h4>Publishing a document</h4>
+    <p>Say you are editing the document <code>foo</code> at <a href="http://{{ dbname }}.synpad.net/foo_">{{ dbname }}.synpad.net/foo_</a>. By clicking the <em>Publish</em> button in the upper right corner, you make the current version of the document available at <a href="http://{{ dbname }}.synpad.net/foo">{{ dbname }}.synpad.net/foo</a>.</p>
+
+    <hr>
+
+    <h4>Listing all documents</h4>
+    <p>A list of all documents is available at <a ui-sref="list">{{ dbname }}.synpad.net/_list</a>.</p>
+
+    <hr>
+
+    <h4>Markdown Cheatsheet</h4>
+    <p>An overview of Markdown features is available <a ui-sref="markdownCheatsheet">here</a>.</p></div>
+</div>

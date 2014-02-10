@@ -1,10 +1,10 @@
 <div class="container">
     <div class="page-header">
-        <h1>Documents</h1>
+        <h1><a ui-sref="home">synpad</a> <small>{{ dbname }}</small></h1>
     </div>
 
+    <h4>Documents</h4>
     <div class="list-group">
-        <div class="list-group-item " ng-if="!documentsLoaded"><em>Loading …</em></div>
         <a class="list-group-item" ng-repeat="doc in documents|orderByPriority|orderBy:['rendered != null','$priority']:true" ui-sref="document({id: doc.$id})">
             <span class="badge silent" am-time-ago="doc.rendered.timestamp" ng-if="doc.rendered.timestamp"></span>
             <span class="badge silent" ng-if="!doc.rendered.timestamp"><em>unpublished</em></span>

@@ -1,0 +1,26 @@
+<div class="container">
+    <div class="page-header">
+        <h1><a ui-sref="home">synpad</a> <small>{{ dbname }}</small></h1>
+    </div>
+
+    <h4>Create a new document</h4>
+    <p>Please choose an ID for your new document. It should be something link <code>my-new-document</code>.</p>
+
+    <form role="form" class="form-inline" name="createform" novalidate>
+        <div class="form-group">
+            <input type="text" class="form-control" id="documentId" name="documentId" autofocus placeholder="Enter ID" ng-model="documentId" required ng-pattern="/^[a-z0-9\-]+$/" ng-minlength="3">
+        </div>
+        <button class="btn btn-primary" ng-click="createNewDocument(documentId)" ng-disabled="createform.$invalid">Create document</button>
+        <button class="btn btn-default" ng-click="createRandomId()">Generate random ID</button>
+    </form>
+
+    <div class="text-danger" ng-if="createform.documentId.$dirty &amp;&amp; createform.documentId.$error.required">This field is required</div>
+    <div class="text-danger" ng-if="createform.documentId.$error.pattern">Please use only lowercase letters, numbers and dashes.</div>
+    <div class="text-danger" ng-if="createform.documentId.$error.minlength">Minimum 3 characters.</div>
+    <br>
+    <p ng-if="createform.$valid">Your document will live at <code>http://{{ dbname }}.synpad.net/{{ documentId }}</code></p>
+
+    <hr>
+
+    <p><a ui-sref="list">List documents</a> | <a ui-sref="help">Help</a> | <a ui-sref="markdownCheatsheet">Markdown cheatsheet</a></p>
+</div>
