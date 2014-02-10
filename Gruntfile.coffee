@@ -115,6 +115,7 @@ module.exports = (grunt) ->
                 options:
                     port: 8000
                     base: 'dist'
+                    keepalive: true
 
         'copy':
             dist:
