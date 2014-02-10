@@ -10,7 +10,6 @@ module.exports = (grunt) ->
   grunt.loadNpmTasks 'grunt-contrib-compress'
   grunt.loadNpmTasks 'grunt-contrib-cssmin'
   grunt.loadNpmTasks 'grunt-contrib-uglify'
-  grunt.loadNpmTasks 'grunt-rsync'
   grunt.loadNpmTasks 'grunt-shell'
   grunt.loadNpmTasks 'grunt-targethtml'
 
@@ -81,20 +80,12 @@ module.exports = (grunt) ->
             'build/stylesheets/screen.css'
           ]
 
-    'rsync':
-      dist:
-        options:
-          src: './dist/'
-          dest: 'public_html'
-          host: 'synpad@synpad.static.syntop.io'
-          recursive: true
-
     'shell':
       pushToDokku:
         options:
           stdout: true
           stderr: true
-        command: 'git push pbsites master'
+        command: 'git push dokku master'
 
     'targethtml':
       dist:
